@@ -1,10 +1,11 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializer import ArticleListSerializer, ArticleSerializer
+from .serializer import ArticleListSerializer, ArticleSerializer, CommentListSerializer
 
 from django.shortcuts import get_list_or_404, get_object_or_404
-from .models import Article
+from .models import Article, Comment
+from articles import serializer
 
 # Create your views here.
 
@@ -45,3 +46,24 @@ def articles_detail(request, article_pk):
         }
         return Response(data)
 
+
+@api_view(['GET'])
+def comment_list(request):
+    comments = get_list_or_404(Comment)
+    serializer = CommentListSerializer(comments, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def comment_detail(request, comment_pk):
+
+    comment = get_object_or_404(Comment, pk=comment_pk)
+    serializer = CommentListSerializer(comment)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def comment_create(request, article_pk):
+    article = get_object_or_404(Article, pk=article_pk)
+    serializer = CommentListSerializer(data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save(article=article)
+        return Response(serializer.data)
